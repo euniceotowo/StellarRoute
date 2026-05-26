@@ -27,8 +27,8 @@ export function useSessionRecovery() {
   const visibilityHandlerRef = useRef<(() => void) | null>(null);
   const pageShowHandlerRef = useRef<((e: PageTransitionEvent) => void) | null>(null);
 
-  // Persist checkpoint and update in-memory state used for staleness detection.
-  const persistCheckpoint = useCallback((isRefresh = false) => {
+  // Update checkpoint
+  const updateCheckpoint = useCallback((isRefresh = false) => {
     const checkpoint: SessionCheckpoint = {
       timestamp: Date.now(),
       isRefresh,
@@ -36,16 +36,6 @@ export function useSessionRecovery() {
     lastCheckpointRef.current = checkpoint;
     sessionStorage.setItem(SESSION_CHECKPOINT_KEY, JSON.stringify(checkpoint));
   }, []);
-
-  // Keep storage heartbeat fresh without mutating staleness baseline.
-  const heartbeatCheckpoint = useCallback(() => {
-    const isRefresh = lastCheckpointRef.current?.isRefresh ?? false;
-    const checkpoint: SessionCheckpoint = {
-      timestamp: Date.now(),
-      isRefresh,
-    };
-    sessionStorage.setItem(SESSION_CHECKPOINT_KEY, JSON.stringify(checkpoint));
-  }, [persistCheckpoint]);
 
   // Check if session is stale based on time gap
   const checkSessionFreshness = useCallback(() => {
@@ -75,7 +65,7 @@ export function useSessionRecovery() {
     
     // Set initial checkpoint if none exists
     if (!lastCheckpointRef.current) {
-      persistCheckpoint(false);
+      updateCheckpoint(false);
     }
   }, []);
 
@@ -108,7 +98,7 @@ export function useSessionRecovery() {
           });
         }
       }
-      persistCheckpoint(false);
+      updateCheckpoint(false);
     };
 
     document.addEventListener('visibilitychange', visibilityHandlerRef.current);
@@ -117,7 +107,7 @@ export function useSessionRecovery() {
         document.removeEventListener('visibilitychange', visibilityHandlerRef.current);
       }
     };
-  }, [checkSessionFreshness, persistCheckpoint, checkRecoverableContext]);
+  }, [checkSessionFreshness, updateCheckpoint, checkRecoverableContext]);
 
   // Handle page show event (tab refresh/navigation back)
   useEffect(() => {
@@ -135,7 +125,7 @@ export function useSessionRecovery() {
           });
         }
       }
-      persistCheckpoint(true);
+      updateCheckpoint(true);
     };
 
     window.addEventListener('pageshow', pageShowHandlerRef.current);
@@ -144,16 +134,18 @@ export function useSessionRecovery() {
         window.removeEventListener('pageshow', pageShowHandlerRef.current);
       }
     };
-  }, [checkSessionFreshness, persistCheckpoint, checkRecoverableContext]);
+  }, [checkSessionFreshness, updateCheckpoint, checkRecoverableContext]);
 
   // Update checkpoint on regular interval
   useEffect(() => {
     const interval = setInterval(() => {
-      heartbeatCheckpoint();
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        updateCheckpoint(false);
+      }
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [heartbeatCheckpoint]);
+  }, [updateCheckpoint]);
 
   // Begin recovery process
   const beginRecovery = useCallback(() => {
@@ -171,8 +163,8 @@ export function useSessionRecovery() {
       refreshType: null,
       hasRecoverableContext: false,
     });
-    persistCheckpoint(false);
-  }, [persistCheckpoint]);
+    updateCheckpoint(false);
+  }, [updateCheckpoint]);
 
   // Dismiss recovery (reset)
   const dismissRecovery = useCallback(() => {
@@ -182,8 +174,8 @@ export function useSessionRecovery() {
       refreshType: null,
       hasRecoverableContext: false,
     });
-    persistCheckpoint(false);
-  }, [persistCheckpoint]);
+    updateCheckpoint(false);
+  }, [updateCheckpoint]);
 
   return {
     ...state,

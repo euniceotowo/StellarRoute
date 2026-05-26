@@ -40,7 +40,7 @@ describe("SwapPresetTemplates", () => {
     );
     
     const button = screen.getByText(selected.label);
-    expect(button.className).toContain("bg-primary/20");
+    expect(button.className).toContain("bg-primary/15");
   });
 
   it("adds preset to recent tracking when clicked", () => {

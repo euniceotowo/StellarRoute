@@ -34,7 +34,7 @@ export function SwapPresetTemplates({
         <div className="flex items-center gap-1.5">
           <Zap className="size-3.5 text-primary animate-pulse" />
           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-            Popular Pairs
+            Quick Pairs
           </span>
         </div>
         {recentTemplates.length > 0 && (
