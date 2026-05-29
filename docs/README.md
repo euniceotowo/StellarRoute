@@ -14,3 +14,8 @@ This directory contains project documentation.
 ## Getting Started
 
 See the main [README.md](../README.md) for an overview of the project.
+
+Development guides:
+
+- [Development Setup](development/SETUP.md)
+- [Frontend Developer Onboarding](development/frontend-guide.md)

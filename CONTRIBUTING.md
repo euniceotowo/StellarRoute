@@ -78,6 +78,8 @@ The API will be available at `http://localhost:3000`. Visit `http://localhost:30
 
 For a more detailed environment setup, see [docs/development/SETUP.md](docs/development/SETUP.md).
 
+For frontend-specific setup and workflows, see [docs/development/frontend-guide.md](docs/development/frontend-guide.md).
+
 ---
 
 ## Development Workflow
