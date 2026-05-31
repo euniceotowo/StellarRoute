@@ -16,6 +16,7 @@ import type {
   PriceQuote,
   QuoteType,
   ApiErrorCode,
+  RoutesResponse,
 } from '@/types';
 
 // ---------------------------------------------------------------------------
@@ -207,17 +208,23 @@ export class StellarRouteClient {
   }
 
   /**
-   * GET /api/v1/price-history/{base}/{quote}
-   *
-   * Returns a 24h aggregated price series derived from orderbook snapshots.
+   * GET /api/v1/routes/{base}/{quote} — ranked route candidates
    */
-  getPriceHistory(
+  getRoutes(
     base: string,
     quote: string,
+    amount?: number,
+    limit?: number,
+    maxHops?: number,
     opts?: FetchOptions,
-  ): Promise<PriceHistoryResponse> {
-    const path = `/api/v1/price-history/${encodeURIComponent(base)}/${encodeURIComponent(quote)}`;
-    return this.request<PriceHistoryResponse>(path, opts);
+  ): Promise<RoutesResponse> {
+    const params = new URLSearchParams();
+    if (amount !== undefined) params.set('amount', String(amount));
+    if (limit !== undefined) params.set('limit', String(limit));
+    if (maxHops !== undefined) params.set('max_hops', String(maxHops));
+    const qs = params.toString();
+    const path = `/api/v1/routes/${encodeURIComponent(base)}/${encodeURIComponent(quote)}${qs ? `?${qs}` : ''}`;
+    return this.request<RoutesResponse>(path, opts);
   }
 
   /**

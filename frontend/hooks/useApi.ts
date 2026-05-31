@@ -23,6 +23,7 @@ import type {
   PairsResponse,
   PriceQuote,
   QuoteType,
+  RoutesResponse,
   TradingPair,
 } from '@/types';
 
@@ -160,6 +161,29 @@ export function usePriceHistory(
     [base, quote],
     refreshIntervalMs,
     skip || !base || !quote,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// useRoutes — fetch ranked route candidates
+// ---------------------------------------------------------------------------
+
+export function useRoutes(
+  base: string,
+  quote: string,
+  amount?: number,
+  limit = 5,
+  maxHops = 3,
+): UseApiState<RoutesResponse> & { refresh: () => void } {
+  const skip = !base || !quote;
+  return useFetch(
+    (signal) =>
+      stellarRouteClient.getRoutes(base, quote, amount, limit, maxHops, {
+        signal,
+      }),
+    [base, quote, amount, limit, maxHops],
+    undefined,
+    skip,
   );
 }
 
