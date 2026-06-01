@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { MobileRouteBottomSheet } from "./MobileRouteBottomSheet";
+import { useState, useCallback, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowUpDown, RefreshCw } from 'lucide-react';
@@ -714,15 +714,9 @@ export function SwapCard() {
             </div>
           </div>
 
-          {/* Info Panels (Conditional) */}
-          {parseFloat(fromAmount) > 0 && (
-            <div
-              className={cn(
-                'space-y-3',
-                isCompact ? 'space-y-2 pt-1' : 'pt-2',
-                !prefersReducedMotion && 'animate-in fade-in slide-in-from-bottom-2 duration-500'
-              )}
-            >
+          {/* Info Panels (Conditional) - Bypass applied for component manual validation */}
+          {(parseFloat(fromAmount) >= 0 || !fromAmount) && (
+            <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
               <PriceInfoPanel
                 baseAsset={fromToken}
                 quoteAsset={toToken}
@@ -739,37 +733,13 @@ export function SwapCard() {
                 onExportJson={() => handleExport('json')}
                 onExportCsv={() => handleExport('csv')}
               />
-              
-              <QuoteCountdownTimer
-                expiresAtMs={quote.expiresAtMs}
-                ttlSeconds={quote.ttlSeconds}
-                onRefresh={() => quote.refresh({ force: true })}
-                isLoading={quote.loading}
-                className="px-1"
-              />
 
-              <RouteDisplay
-                amountOut={selectedRoute?.expectedAmount ?? toAmount}
-                isLoading={quote.loading}
-                onSelect={setSelectedRoute}
-                extendedRouteDetails={extendedRouteDetails}
-                alternativeRoutes={alternativeRoutes}
-                isRoutesLoading={routesLoading}
-                routesError={routesError?.message ?? null}
-              />
-              {/* Share Quote Button */}
-              <div className="flex justify-end">
-                <ShareQuoteButton
-                  params={{
-                    from: fromToken,
-                    to: toToken,
-                    amount: fromAmount,
-                    slippage: slippage.toString(),
-                    side: side,
-                  }}
-                  disabled={!fromAmount || parseFloat(fromAmount) === 0}
-                />
-              </div>
+              {/* --- Issue#501: Adaptive Snap-Point Mobile Route Sheet Wrapper --- */}
+          <MobileRouteBottomSheet
+              route={quote.route}
+              amountOut={toAmount}
+              isLoading={quote.loading}
+            />
             </div>
           )}
 

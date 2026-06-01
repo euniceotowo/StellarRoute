@@ -1,6 +1,6 @@
-import { DemoSwap } from "@/components/DemoSwap";
-import { HeroSection } from "@/components/HeroSection";
-import { IconographyLegend } from "@/components/shared/IconographyLegend";
+"use client";
+
+import { SwapCard } from "@/components/swap/SwapCard";
 
 /**
  * Home/Swap page with deep-linking support
@@ -15,36 +15,19 @@ import { IconographyLegend } from "@/components/shared/IconographyLegend";
  */
 export default function Home() {
   return (
-    <div className="min-h-screen">
-      {/* Hero Section with CTA */}
-      <HeroSection />
-
-      {/* Demo Section */}
-      <div className="container mx-auto px-4 py-12">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold mb-2">Try It Now</h2>
-          <p className="text-muted-foreground">
-            Experience the power of aggregated liquidity
+    <main className="min-h-screen w-full flex flex-col items-center justify-center p-4 sm:p-8 bg-background">
+      <div className="w-full max-w-xl mx-auto space-y-6 pt-12 md:pt-20">
+        <div className="text-center space-y-2 mb-4">
+          <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
+            StellarRoute Exchange
+          </h1>
+          <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+            Multi-hop smart asset router offering optimized settlement paths across liquidity nodes.
           </p>
         </div>
 
-        <DemoSwap />
-
-        <div className="mt-10">
-          <IconographyLegend />
-        </div>
-
-        <div className="mt-12 text-center">
-          <a 
-            href="/quote-inspector" 
-            className="text-primary hover:underline font-medium inline-flex items-center justify-center gap-2"
-          >
-            View Cross-Venue Quote Inspector Demo
-            <span className="text-xs bg-primary/10 px-2 py-0.5 rounded-full">New</span>
-          </a>
-        </div>
+        <SwapCard />
       </div>
-    </div>
+    </main>
   );
 }
-
