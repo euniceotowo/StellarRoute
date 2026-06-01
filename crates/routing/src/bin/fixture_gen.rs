@@ -5,7 +5,6 @@ use std::fs;
 use std::path::PathBuf;
 
 use stellarroute_routing::fixtures::FixtureBuilder;
-use stellarroute_routing::pathfinder::LiquidityEdge;
 
 #[derive(Parser, Debug)]
 #[command(name = "fixture-gen")]

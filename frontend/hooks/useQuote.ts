@@ -28,8 +28,6 @@ export interface QuoteResult {
   refresh: (opts?: { force?: boolean }) => void;
   data: import('@/types').PriceQuote | undefined;
   lastQuotedAtMs: number | null;
-  expiresAtMs?: number;
-  ttlSeconds?: number;
 }
 
 /**
@@ -49,6 +47,7 @@ export function useQuote({ fromToken, toToken, amount, type = 'sell' }: UseQuote
     pendingRetryRemainingMs,
     cancelRetry,
     refresh,
+    lastQuotedAtMs,
   } = useQuoteRefresh(
     fromToken,
     toToken,
@@ -114,8 +113,6 @@ export function useQuote({ fromToken, toToken, amount, type = 'sell' }: UseQuote
     cancelRetry,
     refresh,
     data,
-    lastQuotedAtMs: data ? (data.timestamp ?? Date.now()) : null,
-    expiresAtMs: data?.expires_at,
-    ttlSeconds: data?.ttl_seconds,
+    lastQuotedAtMs,
   };
 }
