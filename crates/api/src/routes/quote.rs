@@ -205,15 +205,16 @@ pub async fn get_quote(
 
                 // ── Audit log ────────────────────────────────────────────
                 let trace_id = crate::tracing_config::TraceContext::current().trace_id;
+                let inner_quote = quote_resp.quote().unwrap();
                 let audit_inputs = AuditInputs {
                     base: base.clone(),
                     quote: quote.clone(),
-                    amount: quote_resp.amount.clone(),
+                    amount: inner_quote.amount.clone(),
                     slippage_bps: params.slippage_bps(),
-                    quote_type: quote_resp.quote_type.clone(),
+                    quote_type: inner_quote.quote_type.clone(),
                 };
-                let audit_selected = build_audit_selected(&quote_resp);
-                let audit_exclusions = build_audit_exclusions(&quote_resp);
+                let audit_selected = build_audit_selected(inner_quote);
+                let audit_exclusions = build_audit_exclusions(inner_quote);
                 state.audit_writer.emit(
                     request_id.as_str(),
                     &trace_id,
@@ -225,15 +226,13 @@ pub async fn get_quote(
                     audit_exclusions,
                 );
 
-                if let Some(fields) = &selected_fields {
-                    let sparse_data = build_sparse_quote_data(&quote_resp, fields)?;
-                    let envelope =
-                        crate::models::ApiResponse::new(sparse_data, request_id.to_string());
-                    return Ok(Json(envelope).into_response());
-                }
-
-                let envelope = crate::models::ApiResponse::new(quote_resp, request_id.to_string());
-                Ok(Json(envelope).into_response())
+                let inner = quote_resp.into_quote().map_err(|e| {
+                    crate::error::ApiError::Internal(Arc::new(anyhow::anyhow!(
+                        "failed to deserialize cached quote: {e}"
+                    )))
+                })?;
+                let envelope = crate::models::ApiResponse::new(inner, request_id.to_string());
+                Ok(Json(envelope))
             }
             Err(e) => {
                 let (error_class, audit_outcome) = match &e {
@@ -498,13 +497,18 @@ pub async fn get_batch_quotes(
                 };
 
                 match get_quote_inner(state, base_asset, quote_asset, params, false).await {
-                    Ok((quote, _cache_hit)) => match quote.into_quote() {
-                        Ok(quote) => BatchQuoteItemResult::ok(i, quote),
-                        Err(e) => {
-                            let (code, message) = batch_error_from_api_error(&e);
-                            BatchQuoteItemResult::err(i, BatchItemError { code, message })
+                    Ok((quote, _cache_hit)) => {
+                        match quote.into_quote() {
+                            Ok(inner) => BatchQuoteItemResult::ok(i, inner),
+                            Err(e) => BatchQuoteItemResult::err(
+                                i,
+                                BatchItemError {
+                                    code: "internal".to_string(),
+                                    message: e.to_string(),
+                                },
+                            ),
                         }
-                    },
+                    }
                     Err(e) => {
                         let (code, message) = batch_error_from_api_error(&e);
                         BatchQuoteItemResult::err(i, BatchItemError { code, message })
